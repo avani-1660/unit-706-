@@ -22,6 +22,9 @@ physics.start()
 physics.setGravity( 0, 25 ) -- ( x, y )
 --physics.setDrawMode( "hybrid" )   -- Shows collision engine outlines only
 
+local playerBullets = {} --table that holds the player bullets
+
+
 local theGround = display.newImageRect( "assets/land.png", 300, 150 )
 theGround.x = display.contentCenterX
 theGround.y = display.contentHeight
@@ -56,6 +59,7 @@ local leftWall = display.newRect( 0, display.contentHeight / 2, 25, display.cont
 -- myRectangle:setFillColor( 0.5 )
 -- myRectangle:setStrokeColor( 1, 0, 0 )
 leftWall.alpha = 0.0
+leftWall.id = "left wall"
 physics.addBody( leftWall, "static", { 
     friction = 0.5, 
     bounce = 0.9
@@ -145,21 +149,7 @@ local function characterCollision( self, event )
 end
 
  
- function checkPlayerBulletsOutOfBounds()
-	-- check if any bullets have gone off the screen
-	local bulletCounter
 
-    if #playerBullets > 0 then
-        for bulletCounter = #playerBullets, 1 ,-1 do
-            if playerBullets[bulletCounter].x > display.contentWidth + 1000 then
-                playerBullets[bulletCounter]:removeSelf()
-                playerBullets[bulletCounter] = nil
-                table.remove(playerBullets, bulletCounter)
-                print("remove bullet")
-            end
-        end
-    end
-end
 
 function upArrow:touch( event )
     if ( event.phase == "ended" ) then
@@ -230,26 +220,43 @@ function checkCharacterPosition( event )
     end
 end
 
-function shootButton:touch( event )
+function shootTouch( event )
     if ( event.phase == "began" ) then
         -- make a bullet appear
-        local aSingleBullet = display.newImageRect( "assets/Kunai.png", 60, 10)
-        aSingleBullet.x = theCharacter2.x
-        aSingleBullet.y = theCharacter2.y
+        local aSingleBullet = display.newImageRect( "assets/bullet.png", 50, 50 )
+        aSingleBullet.x = theCharacter.x
+        aSingleBullet.y = theCharacter.y
         physics.addBody( aSingleBullet, 'dynamic' )
         -- Make the object a "bullet" type object
         aSingleBullet.isBullet = true
-        aSingleBullet.gravityScale = 0
+        aSingleBullet.isFixedRotation = true
+        aSingleBullet.gravityScale = 8
         aSingleBullet.id = "bullet"
-        aSingleBullet:setLinearVelocity( 1500, 0 )
+        aSingleBullet:setLinearVelocity( 850, 0)
 
-        table.insert(playerBullets,aSingleBullet)
+
+        table.insert(playerBullets ,aSingleBullet)
         print("# of bullet: " .. tostring(#playerBullets))
     end
 
     return true
 end
 
+ function checkPlayerBulletsOutOfBounds()
+	-- check if any bullets have gone off the screen
+	local bulletCounter
+
+    if #playerBullets > 0 then
+        for bulletCounter = #playerBullets, 1 ,-1 do
+            if playerBullets[bulletCounter].x > display.contentWidth + 1000 then
+                playerBullets[bulletCounter]:removeSelf()
+                playerBullets[bulletCounter] = nil
+                table.remove(playerBullets, bulletCounter)
+                print("remove bullet")
+            end
+        end
+    end
+end
 
 
 -- if character falls off the end of the world, respawn back to where it came from
@@ -260,7 +267,7 @@ rightArrow:addEventListener( "touch",rightArrow )
 leftArrow:addEventListener( "touch", leftArrow)
 jumpButton:addEventListener( "touch", jumpButton )
 Runtime:addEventListener( "enterFrame", checkCharacterPosition )
-shootButton:addEventListener( "touch", shootButton )
+shootButton:addEventListener( "touch", shootTouch )
 
-theCharacter.collision = characterCollision
-theCharacter:addEventListener( "collision" )
+--theCharacter.collision = characterCollision
+--theCharacter:addEventListener( "collision" )
